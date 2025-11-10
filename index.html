@@ -3,88 +3,119 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DCENT Blog Agent</title>
+  <title>DCENT Blog Agent - AI 콘텐츠 생성기</title>
+  
+  <!-- React & ReactDOM CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Standalone for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    select option {
+      background-color: #1e293b !important;
+      color: white !important;
+      padding: 8px !important;
+    }
+    
+    select option:hover {
+      background-color: #334155 !important;
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>
-  
+
   <script type="text/babel">
-    // 여기에 DCENTBlogAgent.jsx 코드 전체 붙여넣기
     const { useState, useEffect } = React;
     
-    // [전체 코드...]
-    import React, { useState, useEffect } from 'react';
-import { FileText, CheckCircle, AlertCircle, ChevronRight, Lightbulb, Search, TrendingUp, Send, Download, Copy, Mail, Code, ArrowLeft, Globe, History, Trash2, Eye } from 'lucide-react';
-
-const DCENTBlogAgent = () => {
-  const [stage, setStage] = useState('input');
-  const [topic, setTopic] = useState('');
-  const [targetKeyword, setTargetKeyword] = useState('');
-  const [audience, setAudience] = useState('중급자 (중급)');
-  const [goal, setGoal] = useState('교육');
-  const [searchIntent, setSearchIntent] = useState('정보 검색 (How to)');
-  const [length, setLength] = useState('1200');
-  const [locale, setLocale] = useState('ko-KR');
-  const [ctas, setCtas] = useState('1');
-  const [tone, setTone] = useState('전문적이면서 친근한');
-  const [includeImages, setIncludeImages] = useState(true);
-  const [brief, setBrief] = useState(null);
-  const [draft, setDraft] = useState(null);
-  const [seoOutput, setSeoOutput] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState('');
-  const [activityLog, setActivityLog] = useState([]);
-  const [feedback, setFeedback] = useState('');
-  const [exportFormat, setExportFormat] = useState('shopify');
-  const [revisionCount, setRevisionCount] = useState({ brief: 0, draft: 0 });
-  const [translations, setTranslations] = useState({});
-  const [translatingLang, setTranslatingLang] = useState(null);
-  const [validationResult, setValidationResult] = useState(null);
-  const [validating, setValidating] = useState(false);
-
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      select option {
-        background-color: #1e293b !important;
-        color: white !important;
-        padding: 8px !important;
-      }
-      select option:hover {
-        background-color: #334155 !important;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-
-  const addLog = (message, type = 'info') => {
-    const timestamp = new Date().toLocaleTimeString('ko-KR');
-    setActivityLog(prev => [...prev, { message, type, timestamp }]);
-  };
-
-  const validateWithAI = async (stage, content) => {
-    setValidating(true);
-    setValidationResult(null);
-    setLoadingProgress(0);
-    setActivityLog([]);
-    addLog('🔍 AI SEO 전문가 검증 시작', 'start');
-
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => Math.min(prev + Math.random() * 10, 90));
-      }, 400);
-
-      let validationPrompt = '';
+    // Lucide 아이콘을 React 컴포넌트로 래핑하는 헬퍼 함수
+    const LucideIcon = ({ name, className = "w-5 h-5", ...props }) => {
+      const ref = React.useRef(null);
       
-      if (stage === 'brief') {
-        addLog('📋 브리프 SEO 전략 분석 중...', 'process');
-        validationPrompt = `당신은 SEO 전문가입니다. 다음 브리프를 검증하세요:
+      useEffect(() => {
+        if (ref.current) {
+          const icon = lucide.createElement(lucide[name]);
+          if (icon) {
+            ref.current.innerHTML = '';
+            ref.current.appendChild(icon);
+          }
+        }
+      }, [name]);
+      
+      return <span ref={ref} className={className} {...props}></span>;
+    };
+
+    const DCENTBlogAgent = () => {
+      const [stage, setStage] = useState('input');
+      const [topic, setTopic] = useState('');
+      const [targetKeyword, setTargetKeyword] = useState('');
+      const [audience, setAudience] = useState('중급자 (중급)');
+      const [goal, setGoal] = useState('교육');
+      const [searchIntent, setSearchIntent] = useState('정보 검색 (How to)');
+      const [length, setLength] = useState('1200');
+      const [locale, setLocale] = useState('ko-KR');
+      const [ctas, setCtas] = useState('1');
+      const [tone, setTone] = useState('전문적이면서 친근한');
+      const [includeImages, setIncludeImages] = useState(true);
+      const [brief, setBrief] = useState(null);
+      const [draft, setDraft] = useState(null);
+      const [seoOutput, setSeoOutput] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [loadingProgress, setLoadingProgress] = useState(0);
+      const [loadingMessage, setLoadingMessage] = useState('');
+      const [activityLog, setActivityLog] = useState([]);
+      const [feedback, setFeedback] = useState('');
+      const [exportFormat, setExportFormat] = useState('shopify');
+      const [revisionCount, setRevisionCount] = useState({ brief: 0, draft: 0 });
+      const [translations, setTranslations] = useState({});
+      const [translatingLang, setTranslatingLang] = useState(null);
+      const [validationResult, setValidationResult] = useState(null);
+      const [validating, setValidating] = useState(false);
+
+      useEffect(() => {
+        lucide.createIcons();
+      }, [stage, loading, validating, validationResult]);
+
+      const addLog = (message, type = 'info') => {
+        const timestamp = new Date().toLocaleTimeString('ko-KR');
+        setActivityLog(prev => [...prev, { message, type, timestamp }]);
+      };
+
+      const validateWithAI = async (stageType, content) => {
+        setValidating(true);
+        setValidationResult(null);
+        setLoadingProgress(0);
+        setActivityLog([]);
+        addLog('🔍 AI SEO 전문가 검증 시작', 'start');
+
+        try {
+          const progressInterval = setInterval(() => {
+            setLoadingProgress(prev => Math.min(prev + Math.random() * 10, 90));
+          }, 400);
+
+          let validationPrompt = '';
+          
+          if (stageType === 'brief') {
+            addLog('📋 브리프 SEO 전략 분석 중...', 'process');
+            validationPrompt = `당신은 SEO 전문가입니다. 다음 브리프를 검증하세요:
 
 ${content}
 
@@ -120,15 +151,14 @@ ${content}
   "overall_score": 86,
   "strengths": ["강점 1", "강점 2"],
   "issues": [
-    {"severity": "warning", "item": "문제점", "suggestion": "개선 제안"},
-    {"severity": "error", "item": "문제점", "suggestion": "개선 제안"}
+    {"severity": "warning", "item": "문제점", "suggestion": "개선 제안"}
   ],
   "auto_feedback": "자동 생성된 피드백 텍스트 (구체적으로)"
 }`;
-      } else if (stage === 'draft') {
-        addLog('📝 초안 키워드 밀도 분석 중...', 'process');
-        addLog('🎯 Featured Snippet 최적화 검토 중...', 'process');
-        validationPrompt = `당신은 SEO 전문가입니다. 다음 초안을 검증하세요:
+          } else if (stageType === 'draft') {
+            addLog('📝 초안 키워드 밀도 분석 중...', 'process');
+            addLog('🎯 Featured Snippet 최적화 검토 중...', 'process');
+            validationPrompt = `당신은 SEO 전문가입니다. 다음 초안을 검증하세요:
 
 ${content}
 
@@ -138,25 +168,9 @@ ${content}
 **검증 항목:**
 
 1. **키워드 최적화 (0-100점)**
-   - H1에 타겟 키워드가 자연스럽게 포함되었는가?
-   - 첫 100단어 내 키워드 밀도 (1-2% 권장)
-   - 키워드 스터핑 없이 자연스러운가?
-   - LSI 키워드가 H2/H3에 적절히 분산되었는가?
-
 2. **Featured Snippet 최적화 (0-100점)**
-   - 첫 문단이 40-60단어인가?
-   - 핵심 답변이 명확한가?
-   - 검색 의도를 충족하는가?
-
 3. **가독성 (0-100점)**
-   - 평균 문장 길이 (20단어 권장)
-   - 단락 구성 (3-5문장)
-   - 전문용어 적절성
-
 4. **구조 (0-100점)**
-   - H2/H3 계층 구조
-   - 검색 의도 기반 구조 적합성
-   - CTA 배치 적절성
 
 다음 JSON 형식으로 응답하세요:
 {
@@ -170,147 +184,99 @@ ${content}
   "keyword_density": "1.8%",
   "first_paragraph_words": 48,
   "avg_sentence_length": 18,
-  "strengths": ["강점 1", "강점 2"],
+  "strengths": ["강점 1"],
   "issues": [
-    {"severity": "warning", "item": "키워드 밀도", "location": "3번째 문단", "suggestion": "콜드월렛 2회 삭제"},
-    {"severity": "error", "item": "문제점", "location": "위치", "suggestion": "개선 제안"}
+    {"severity": "warning", "item": "문제", "location": "위치", "suggestion": "개선안"}
   ],
-  "auto_feedback": "자동 생성된 피드백 텍스트 (구체적이고 실행 가능하게)"
+  "auto_feedback": "피드백"
 }`;
-      } else if (stage === 'seo') {
-        addLog('🔍 메타데이터 검증 중...', 'process');
-        addLog('📊 전체 SEO 품질 평가 중...', 'process');
-        validationPrompt = `당신은 SEO 전문가입니다. 다음 SEO 최적화 결과를 검증하세요:
+          } else if (stageType === 'seo') {
+            addLog('🔍 메타데이터 검증 중...', 'process');
+            addLog('📊 전체 SEO 품질 평가 중...', 'process');
+            validationPrompt = `당신은 SEO 전문가입니다. 다음 SEO 최적화 결과를 검증하세요:
 
 ${content}
 
 **검증 항목:**
-
 1. **메타데이터 (0-100점)**
-   - Title 길이 (50-60자 권장)
-   - Description 길이 (150-160자 권장)
-   - 키워드 포함 여부
-
 2. **키워드 전략 (0-100점)**
-   - 메인/LSI/Long-tail 키워드 분석 완성도
-   - 키워드 밀도 적절성
-   - Featured Snippet 최적화
-
 3. **링크 전략 (0-100점)**
-   - 내부 링크 제안 (3개 이상 권장)
-   - 외부 출처 제안 (E-A-T 강화)
-
 4. **기술 SEO (0-100점)**
-   - 구조화된 데이터 제안
-   - 이미지 최적화
-   - 가독성 개선 제안
 
-다음 JSON 형식으로 응답하세요:
-{
-  "scores": {
-    "metadata": 90,
-    "keyword_strategy": 85,
-    "link_strategy": 70,
-    "technical_seo": 88
-  },
-  "overall_score": 83,
-  "strengths": ["강점 1", "강점 2"],
-  "issues": [
-    {"severity": "warning", "item": "문제점", "suggestion": "개선 제안"},
-    {"severity": "error", "item": "문제점", "suggestion": "개선 제안"}
-  ],
-  "auto_feedback": "자동 생성된 피드백 텍스트"
-}`;
-      }
+JSON 형식으로 응답하세요.`;
+          }
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          messages: [{
-            role: 'user',
-            content: validationPrompt
-          }]
-        })
-      });
+          const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 2000,
+              messages: [{ role: 'user', content: validationPrompt }]
+            })
+          });
 
-      clearInterval(progressInterval);
-      setLoadingProgress(95);
-      addLog('📊 검증 결과 분석 중...', 'process');
+          clearInterval(progressInterval);
+          setLoadingProgress(95);
+          addLog('📊 검증 결과 분석 중...', 'process');
 
-      const data = await response.json();
-      let resultText = data.content.find(c => c.type === 'text')?.text || '';
-      
-      // JSON 추출 (마크다운 코드 블록 제거)
-      resultText = resultText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      
-      const validationData = JSON.parse(resultText);
-      
-      setLoadingProgress(100);
-      addLog('✅ 검증 완료!', 'success');
-      addLog(`종합 점수: ${validationData.overall_score}/100`, 'success');
-      
-      setValidationResult(validationData);
-    } catch (err) {
-      addLog('❌ 오류 발생: ' + err.message, 'error');
-      alert('검증 중 오류: ' + err.message);
-    }
-    
-    setValidating(false);
-    setLoadingProgress(0);
-  };
+          const data = await response.json();
+          let resultText = data.content.find(c => c.type === 'text')?.text || '';
+          
+          resultText = resultText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          
+          const validationData = JSON.parse(resultText);
+          
+          setLoadingProgress(100);
+          addLog('✅ 검증 완료!', 'success');
+          addLog(`종합 점수: ${validationData.overall_score}/100`, 'success');
+          
+          setValidationResult(validationData);
+        } catch (err) {
+          addLog('❌ 오류 발생: ' + err.message, 'error');
+          alert('검증 중 오류: ' + err.message);
+        }
+        
+        setValidating(false);
+        setLoadingProgress(0);
+      };
 
-  const applyAutoFeedback = () => {
-    if (validationResult && validationResult.auto_feedback) {
-      setFeedback(validationResult.auto_feedback);
-      alert('✅ 자동 피드백이 입력되었습니다. 재생성 버튼을 눌러주세요.');
-    }
-  };
+      const applyAutoFeedback = () => {
+        if (validationResult && validationResult.auto_feedback) {
+          setFeedback(validationResult.auto_feedback);
+          alert('✅ 자동 피드백이 입력되었습니다. 재생성 버튼을 눌러주세요.');
+        }
+      };
 
-  const generateBrief = async () => {
-    if (!topic.trim()) {
-      alert('주제를 입력해주세요');
-      return;
-    }
+      const generateBrief = async () => {
+        if (!topic.trim()) {
+          alert('주제를 입력해주세요');
+          return;
+        }
 
-    setLoading(true);
-    setLoadingProgress(0);
-    setLoadingMessage('브리프 생성 준비 중...');
-    setActivityLog([]);
-    setValidationResult(null); // 검증 결과 초기화
-    addLog('🚀 브리프 생성 시작', 'start');
-    addLog(`📝 주제: ${topic}`, 'info');
-    if (targetKeyword) addLog(`🎯 타겟 키워드: ${targetKeyword}`, 'info');
-    addLog(`👥 타겟: ${audience} / 목표: ${goal}`, 'info');
-    addLog(`🔍 검색 의도: ${searchIntent}`, 'info');
-    
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => {
-          if (prev >= 90) return prev;
-          return prev + Math.random() * 15;
-        });
-      }, 300);
+        setLoading(true);
+        setLoadingProgress(0);
+        setLoadingMessage('브리프 생성 준비 중...');
+        setActivityLog([]);
+        setValidationResult(null);
+        addLog('🚀 브리프 생성 시작', 'start');
+        
+        try {
+          const progressInterval = setInterval(() => {
+            setLoadingProgress(prev => Math.min(prev + Math.random() * 15, 90));
+          }, 300);
 
-      addLog('🤖 AI 모델 초기화 중...', 'process');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setLoadingMessage('AI가 브리프를 작성하고 있습니다...');
-      addLog('✍️ 브리프 구조 설계 중...', 'process');
-      addLog('🎯 핵심 메시지 도출 중...', 'process');
-      addLog('🔍 SEO 키워드 전략 수립 중...', 'process');
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
-          messages: [{
-            role: 'user',
-            content: `당신은 DCENT 콜드월렛 블로그 편집 에이전트입니다.
+          addLog('🤖 AI 모델 초기화 중...', 'process');
+          
+          const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 1500,
+              messages: [{
+                role: 'user',
+                content: `당신은 DCENT 콜드월렛 블로그 편집 에이전트입니다.
 
 **체크포인트 1: 브리프 생성**
 
@@ -320,1690 +286,234 @@ ${content}
 - Audience: ${audience}
 - Goal: ${goal}
 - Search Intent: ${searchIntent}
-- Length: ${length}자
-- Locale: ${locale}
-- CTAs: ${ctas}개
 - Tone: ${tone}
-- Images: ${includeImages ? 'on' : 'off'}
 
-다음 형식으로 브리프를 생성하세요:
+브리프를 생성하세요. SEO 키워드 전략, Featured Snippet 타겟, 구조 제안을 포함하세요.`
+              }]
+            })
+          });
 
-## 브리프
+          clearInterval(progressInterval);
+          setLoadingProgress(100);
 
-### 핵심 메시지 (1문장)
-[독자가 이 글에서 얻을 핵심 가치]
-
-### 타겟 독자
-[구체적 페르소나: 현재 상황, 고민, 배경지식]
-
-### SEO 키워드 전략
-**메인 키워드:** ${targetKeyword || '[주제 기반 제안]'}
-**LSI 키워드:** [관련 의미 키워드 3-5개]
-**Long-tail 키워드:** [구체적 검색어 3-5개]
-**키워드 배치:**
-- H1: [메인 키워드 포함 제목]
-- 첫 100단어: [자연스럽게 메인 키워드 1-2회]
-- H2/H3: [LSI 키워드 분산 배치]
-
-### Featured Snippet 타겟
-**타입:** ${
-  searchIntent.includes('How to') ? '단계별 가이드 (Numbered List)' :
-  searchIntent.includes('비교') ? '비교 표 (Table)' :
-  searchIntent.includes('구매') ? '정의 + 가격 범위 (Paragraph)' :
-  '문제-해결 (Paragraph)'
-}
-**최적화 포맷:** [40-60단어로 핵심 답변을 첫 문단에 배치]
-
-### 구조 제안 (검색 의도 기반)
-${
-  searchIntent.includes('How to') 
-    ? '1. [도입] 문제 상황 공감\n2. [단계별 가이드] 번호 목록 형식\n3. [팁과 주의사항]\n4. [결론 + CTA]'
-    : searchIntent.includes('비교')
-    ? '1. [도입] 선택 기준 제시\n2. [비교 표] 핵심 항목별 비교\n3. [각 항목 상세 설명]\n4. [추천 + CTA]'
-    : searchIntent.includes('구매')
-    ? '1. [도입] 구매 고려사항\n2. [가격대별 옵션]\n3. [구매처 및 방법]\n4. [FAQ + CTA]'
-    : '1. [문제 정의]\n2. [원인 분석]\n3. [해결 방법]\n4. [예방 팁 + CTA]'
-}
-
-### 필수 다룰 내용
-- [항목 1]
-- [항목 2]
-- [항목 3]
-
-### 레퍼런스 필요 영역
-- [확인 필요한 기술/수치/주장]
-
-### CTA 제안
-- [행동 유도 메시지]
-
-${includeImages ? `### 이미지 제안
-- 섹션 1: [이미지 설명 및 목적]
-- 섹션 2: [이미지 설명 및 목적]
-- 섹션 3: [이미지 설명 및 목적]` : ''}
-
-#await_human_ok
-
-브랜드 원칙: ${tone}, 과장 금지, 실용적 가이드 제공.`
-          }]
-        })
-      });
-
-      clearInterval(progressInterval);
-      setLoadingProgress(95);
-      setLoadingMessage('브리프 최종 검토 중...');
-      addLog('📋 타겟 독자 분석 완료', 'process');
-      addLog('🔍 SEO 키워드 전략 수립 완료', 'process');
-      addLog('🎯 Featured Snippet 최적화 완료', 'process');
-      
-      if (includeImages) addLog('🖼️ 이미지 제안 포함', 'process');
-
-      const data = await response.json();
-      const briefText = data.content.find(c => c.type === 'text')?.text || '';
-      
-      setLoadingProgress(100);
-      addLog('✅ 브리프 생성 완료!', 'success');
-      setBrief(briefText);
-      setStage('brief');
-    } catch (err) {
-      addLog('❌ 오류 발생: ' + err.message, 'error');
-      alert('브리프 생성 중 오류: ' + err.message);
-    }
-    setLoading(false);
-    setLoadingProgress(0);
-  };
-
-  const reviseBrief = async () => {
-    if (!feedback.trim()) {
-      alert('피드백을 입력해주세요');
-      return;
-    }
-
-    setLoading(true);
-    setLoadingProgress(0);
-    setLoadingMessage('피드백 분석 중...');
-    setActivityLog([]);
-    setValidationResult(null); // 검증 결과 초기화
-    addLog('🔄 브리프 수정 시작', 'start');
-    addLog(`📝 수정 ${revisionCount.brief + 1}회차`, 'info');
-    
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => Math.min(prev + Math.random() * 15, 90));
-      }, 300);
-
-      addLog('🔍 피드백 내용 분석 중...', 'process');
-      await new Promise(resolve => setTimeout(resolve, 400));
-      
-      setLoadingMessage('브리프를 수정하고 있습니다...');
-      addLog('✏️ 브리프 재구성 중...', 'process');
-      addLog('🎯 피드백 반영 중...', 'process');
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
-          messages: [{
-            role: 'user',
-            content: `당신은 DCENT 콜드월렛 블로그 편집 에이전트입니다.
-
-**체크포인트 1: 브리프 수정 (수정 ${revisionCount.brief + 1}회차)**
-
-기존 브리프:
-${brief}
-
-편집자 피드백:
-${feedback}
-
-위 피드백을 반영하여 브리프를 수정하세요. 동일한 형식을 유지하되, 피드백 내용을 정확히 반영해주세요.
-
-브랜드 원칙: ${tone}, 과장 금지, 실용적 가이드 제공.
-
-#await_human_ok`
-          }]
-        })
-      });
-
-      clearInterval(progressInterval);
-      setLoadingProgress(100);
-      addLog('📋 수정사항 적용 완료', 'process');
-      addLog('✅ 브리프 수정 완료!', 'success');
-
-      const data = await response.json();
-      const briefText = data.content.find(c => c.type === 'text')?.text || '';
-      setBrief(briefText);
-      setFeedback('');
-      setRevisionCount(prev => ({ ...prev, brief: prev.brief + 1 }));
-      alert('✅ 피드백이 반영되었습니다. 수정된 브리프를 확인해주세요.');
-    } catch (err) {
-      addLog('❌ 오류 발생: ' + err.message, 'error');
-      alert('브리프 수정 중 오류: ' + err.message);
-    }
-    setLoading(false);
-    setLoadingProgress(0);
-  };
-
-  const generateDraft = async () => {
-    setLoading(true);
-    setLoadingProgress(0);
-    setLoadingMessage('초안 작성 준비 중...');
-    setActivityLog([]);
-    setValidationResult(null); // 검증 결과 초기화
-    addLog('🚀 초안 작성 시작', 'start');
-    addLog(`📏 목표 길이: ${length}자`, 'info');
-    addLog(`🎨 톤앤매너: ${tone}`, 'info');
-    if (targetKeyword) addLog(`🎯 타겟 키워드: ${targetKeyword}`, 'info');
-    
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => Math.min(prev + Math.random() * 10, 90));
-      }, 400);
-
-      addLog('🤖 AI 모델 초기화 중...', 'process');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setLoadingMessage('AI가 초안을 작성하고 있습니다... (1-2분 소요)');
-      addLog('✍️ 도입부 작성 중...', 'process');
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      addLog('📝 본문 구조 생성 중...', 'process');
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      addLog('🎯 키워드 최적화 배치 중...', 'process');
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          messages: [{
-            role: 'user',
-            content: `당신은 DCENT 콜드월렛 블로그 편집 에이전트입니다.
-
-**체크포인트 3: 초안 작성**
-
-승인된 브리프:
-${brief}
-
-${feedback ? `편집자 피드백: ${feedback}` : ''}
-
-변수:
-- Length: ${length}자
-- Target Keyword: ${targetKeyword || '(미지정)'}
-- Search Intent: ${searchIntent}
-- Locale: ${locale}
-- Tone: ${tone}
-- Images: ${includeImages ? 'on' : 'off'}
-
-다음 규칙으로 초안을 작성하세요:
-
-1. **SEO 최적화 구조**
-   - H1: 타겟 키워드 포함 (자연스럽게)
-   - 첫 100단어: 메인 키워드 1-2회 자연스럽게 배치
-   - H2/H3: LSI 키워드 분산 배치
-   - Featured Snippet 타겟: 첫 문단에 40-60단어로 핵심 답변
-
-2. **검색 의도 기반 구조**
-${
-  searchIntent.includes('How to')
-    ? '   - 단계별 가이드 형식 (1, 2, 3...)\n   - 각 단계마다 구체적 행동 지침\n   - 스크린샷/다이어그램 위치 표시'
-    : searchIntent.includes('비교')
-    ? '   - 비교 기준 명확히 제시\n   - 표 형식 또는 항목별 설명\n   - 각 옵션의 장단점'
-    : searchIntent.includes('구매')
-    ? '   - 가격대별 옵션 제시\n   - 구매처 링크 (CTA)\n   - FAQ 섹션 포함'
-    : '   - 문제 정의 → 원인 → 해결책\n   - 체크리스트 형식\n   - 예방 팁'
-}
-
-3. **문체**
-   - 톤앤매너: ${tone}
-   - 과장 금지, 구체적 사례 사용
-   - 독자가 바로 실행할 수 있는 조언
-
-4. **금지사항**
-   - 근거 없는 수치
-   - 경쟁사 비방
-   - 클릭베이트 표현
-   - 키워드 스터핑 (부자연스러운 반복)
-
-5. **필수 포함**
-   - [팩트체크 필요] 태그로 검증 필요한 주장 표시
-   - [출처 제안: ...] 태그로 참고할 자료 명시
-   ${includeImages ? '- [이미지: ...] 태그로 각 섹션에 적합한 이미지 설명 및 alt 텍스트 포함' : ''}
-
-초안을 작성하세요:
-
-#await_human_ok`
-          }]
-        })
-      });
-
-      clearInterval(progressInterval);
-      setLoadingProgress(95);
-      setLoadingMessage('초안 최종 검토 중...');
-      addLog('🔍 문장 가독성 검토 중...', 'process');
-      addLog('📋 CTA 배치 최적화 중...', 'process');
-      addLog('🎯 키워드 밀도 확인 중...', 'process');
-      
-      if (includeImages) addLog('🖼️ 이미지 제안 삽입 완료', 'process');
-
-      const data = await response.json();
-      const draftText = data.content.find(c => c.type === 'text')?.text || '';
-      
-      setLoadingProgress(100);
-      addLog('✅ 초안 작성 완료!', 'success');
-      setDraft(draftText);
-      setStage('draft');
-      setFeedback('');
-    } catch (err) {
-      addLog('❌ 오류 발생: ' + err.message, 'error');
-      alert('초안 생성 중 오류: ' + err.message);
-    }
-    setLoading(false);
-    setLoadingProgress(0);
-  };
-
-  const reviseDraft = async () => {
-    if (!feedback.trim()) {
-      alert('피드백을 입력해주세요');
-      return;
-    }
-
-    setLoading(true);
-    setLoadingProgress(0);
-    setLoadingMessage('피드백 분석 중...');
-    setValidationResult(null); // 검증 결과 초기화
-    
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => Math.min(prev + Math.random() * 10, 90));
-      }, 400);
-
-      setLoadingMessage('초안을 수정하고 있습니다...');
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          messages: [{
-            role: 'user',
-            content: `당신은 DCENT 콜드월렛 블로그 편집 에이전트입니다.
-
-**체크포인트 3: 초안 수정 (수정 ${revisionCount.draft + 1}회차)**
-
-기존 초안:
-${draft}
-
-편집자 피드백:
-${feedback}
-
-위 피드백을 반영하여 초안을 수정하세요.
-
-변수:
-- Length: ${length}자
-- Target Keyword: ${targetKeyword || '(미지정)'}
-- Tone: ${tone}
-- Images: ${includeImages ? 'on' : 'off'}
-
-동일한 형식과 구조를 유지하되, 피드백 내용을 정확히 반영해주세요.
-SEO 최적화 원칙(키워드 배치, Featured Snippet)을 유지하세요.
-
-#await_human_ok`
-          }]
-        })
-      });
-
-      clearInterval(progressInterval);
-      setLoadingProgress(100);
-
-      const data = await response.json();
-      const draftText = data.content.find(c => c.type === 'text')?.text || '';
-      setDraft(draftText);
-      setFeedback('');
-      setRevisionCount(prev => ({ ...prev, draft: prev.draft + 1 }));
-      alert('✅ 피드백이 반영되었습니다. 수정된 초안을 확인해주세요.');
-    } catch (err) {
-      alert('초안 수정 중 오류: ' + err.message);
-    }
-    setLoading(false);
-    setLoadingProgress(0);
-  };
-
-  const generateSEO = async () => {
-    setLoading(true);
-    setLoadingProgress(0);
-    setLoadingMessage('SEO 분석 시작...');
-    setValidationResult(null); // 검증 결과 초기화
-    
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => Math.min(prev + Math.random() * 12, 90));
-      }, 350);
-
-      setLoadingMessage('키워드 분석 및 최적화 중...');
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          messages: [{
-            role: 'user',
-            content: `당신은 DCENT 콜드월렛 블로그 편집 에이전트입니다.
-
-**체크포인트 5: SEO·퍼포먼스 최적화**
-
-승인된 초안:
-${draft}
-
-타겟 키워드: ${targetKeyword || '(미지정)'}
-검색 의도: ${searchIntent}
-
-${feedback ? `편집자 피드백: ${feedback}` : ''}
-
-다음 항목을 최적화하세요:
-
-## SEO 최적화
-
-### 메타데이터
-- Title (50-60자): [타겟 키워드 포함, 클릭 유도]
-- Description (150-160자): [검색 의도 충족, CTA 포함]
-- Focus Keyword: ${targetKeyword || '[제안]'}
-
-### 키워드 전략
-| 키워드 타입 | 키워드 | 검색량 추정 | 배치 위치 | 밀도 |
-|------------|--------|------------|-----------|------|
-| 메인 | ${targetKeyword || '[제안]'} | 높음 | H1, 첫 100단어, H2 | 1-2% |
-| LSI | [관련 키워드 3-5개] | 중간 | H2, H3, 본문 | 0.5-1% |
-| Long-tail | [구체적 검색어 3-5개] | 낮음 | 본문, H3 | 자연스럽게 |
-
-### Featured Snippet 최적화
-- **현재 상태:** [첫 문단 분석]
-- **개선 제안:** [40-60단어로 핵심 답변 재구성]
-- **타입:** ${
-  searchIntent.includes('How to') ? 'Numbered List' :
-  searchIntent.includes('비교') ? 'Table' :
-  'Paragraph'
-}
-
-### 내부 링크 제안
-- [앵커텍스트] → [추정 URL 또는 주제]
-- [앵커텍스트] → [추정 URL 또는 주제]
-- [앵커텍스트] → [추정 URL 또는 주제]
-
-### 외부 출처 제안 (E-A-T 강화)
-- [주장/수치] → [권위있는 출처 추천]
-- [주장/수치] → [권위있는 출처 추천]
-
-${includeImages ? `### 이미지 최적화
-- 각 이미지의 alt 텍스트 (키워드 포함)
-- 이미지 파일명 제안 (SEO 친화적)
-- 이미지 배치 위치 및 크기 권장사항` : ''}
-
-## 구조화된 데이터 제안
-- Schema.org 타입: [Article / HowTo / FAQPage]
-- 필수 필드: [headline, author, datePublished, image]
-
-## 가독성 개선
-- 평균 문장 길이: [분석 결과]
-- Flesch Reading Ease: [점수 추정]
-- 복잡한 전문용어: [단순화 제안]
-- 단락 길이: [조정 제안]
-- 모바일 최적화: [체크리스트]
-
-## 경쟁 분석 (선택)
-- 상위 3개 경쟁 콘텐츠 키워드 분석
-- 차별화 포인트 제안
-
-#await_human_ok`
-          }]
-        })
-      });
-
-      clearInterval(progressInterval);
-      setLoadingProgress(95);
-      setLoadingMessage('최적화 완료 중...');
-
-      const data = await response.json();
-      const seoText = data.content.find(c => c.type === 'text')?.text || '';
-      
-      setLoadingProgress(100);
-      setSeoOutput(seoText);
-      setStage('seo');
-      setFeedback('');
-    } catch (err) {
-      alert('SEO 최적화 중 오류: ' + err.message);
-    }
-    setLoading(false);
-    setLoadingProgress(0);
-  };
-
-  const resetAll = () => {
-    setStage('input');
-    setTopic('');
-    setTargetKeyword('');
-    setFeedback('');
-    setBrief(null);
-    setDraft(null);
-    setSeoOutput(null);
-    setRevisionCount({ brief: 0, draft: 0 });
-    setTranslations({});
-    setValidationResult(null); // 검증 결과 초기화
-  };
-
-  const goToPreviousStage = () => {
-    const stages = ['input', 'brief', 'draft', 'seo', 'complete'];
-    const currentIndex = stages.indexOf(stage);
-    if (currentIndex > 0) {
-      setStage(stages[currentIndex - 1]);
-      setFeedback('');
-      setValidationResult(null); // 검증 결과 초기화
-    }
-  };
-
-  const translateContent = async (targetLang) => {
-    if (!draft) {
-      alert('번역할 초안이 없습니다');
-      return;
-    }
-
-    setTranslatingLang(targetLang);
-    setLoading(true);
-    setLoadingProgress(0);
-    setActivityLog([]);
-    
-    const langNames = {
-      'ko': '한국어',
-      'ja': '일본어',
-      'en': '영어'
-    };
-    
-    const langName = langNames[targetLang];
-    setLoadingMessage(`${langName}로 번역 중...`);
-    addLog(`🌐 ${langName} 번역 시작`, 'start');
-    addLog('📄 원본 콘텐츠 분석 중...', 'info');
-
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => Math.min(prev + Math.random() * 12, 90));
-      }, 400);
-
-      addLog('🔍 문맥 파악 중...', 'process');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      addLog('✍️ 자연스러운 번역 진행 중...', 'process');
-      addLog('🎯 전문 용어 현지화 중...', 'process');
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          messages: [{
-            role: 'user',
-            content: `당신은 전문 번역가입니다. 다음 콘텐츠를 ${langName}로 번역하세요.
-
-**번역 원칙:**
-1. **자연스러운 의역**: 직역이 아닌, 문맥을 고려한 자연스러운 번역
-2. **현지화**: 해당 언어권 독자에게 친숙한 표현 사용
-3. **전문 용어**: 콜드월렛, 블록체인 등 전문 용어는 해당 언어권에서 통용되는 표현 사용
-4. **톤앤매너 유지**: 원본의 톤과 브랜드 보이스 유지
-5. **구조 유지**: 제목(H1/H2/H3), 단락 구조 동일하게 유지
-6. **SEO 최적화**: 타겟 언어의 검색 키워드도 고려
-7. **태그 처리**: 
-   - [이미지: ...] 태그는 그대로 유지 (설명만 번역)
-   - [팩트체크 필요], [출처 제안: ...] 태그 제거
-
-**원본 콘텐츠:**
-${draft}
-
-**타겟 언어: ${langName}**
-
-${targetLang === 'ko' ? '한국어로 번역할 때는 존댓말을 사용하되, 너무 격식 차리지 않고 친근한 톤을 유지하세요.' : ''}
-${targetLang === 'ja' ? '日本語で翻訳する際は、「です・ます」調を使用し、読者に親しみやすい表現を心がけてください。' : ''}
-${targetLang === 'en' ? 'For English translation, use a professional yet approachable tone. Avoid overly formal language.' : ''}
-
-번역된 콘텐츠만 출력하세요. 추가 설명이나 주석은 불필요합니다.`
-          }]
-        })
-      });
-
-      clearInterval(progressInterval);
-      setLoadingProgress(95);
-      addLog('📋 번역 품질 검토 중...', 'process');
-      addLog('🔍 용어 일관성 확인 중...', 'process');
-
-      const data = await response.json();
-      const translatedText = data.content.find(c => c.type === 'text')?.text || '';
-      
-      setLoadingProgress(100);
-      addLog(`✅ ${langName} 번역 완료!`, 'success');
-      
-      setTranslations(prev => ({ ...prev, [targetLang]: translatedText }));
-      setTranslatingLang(null);
-      alert(`✅ ${langName} 번역이 완료되었습니다!`);
-    } catch (err) {
-      addLog('❌ 오류 발생: ' + err.message, 'error');
-      alert(`${langName} 번역 중 오류: ` + err.message);
-      setTranslatingLang(null);
-    }
-    setLoading(false);
-    setLoadingProgress(0);
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    alert('클립보드에 복사되었습니다!');
-  };
-
-  const generateShopifyHTML = () => {
-    if (!draft) return '';
-    
-    let html = draft
-      .replace(/\[이미지: ([^\]]+)\]/g, '<figure class="blog-image"><img src="PLACEHOLDER.jpg" alt="$1" /><figcaption>$1</figcaption></figure>')
-      .replace(/\[팩트체크 필요\]/g, '<span class="fact-check">📌 팩트체크 필요</span>')
-      .replace(/\[출처 제안: ([^\]]+)\]/g, '<span class="source-note">📚 출처 제안: $1</span>');
-    
-    // 헤더 변환 (볼드 처리 전에)
-    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-    
-    // 볼드 처리: **텍스트** → <strong>텍스트</strong>
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    
-    // 이탤릭 처리: *텍스트* → <em>텍스트</em> (선택사항)
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
-    html = html.split('\n\n').map(p => p.trim() ? `<p>${p.trim()}</p>` : '').join('\n');
-    
-    return `<!-- Shopify Blog HTML -->
-<article class="dcent-blog-post">
-  <style>
-    .dcent-blog-post h2 { 
-      font-size: 1.75rem; 
-      font-weight: bold; 
-      margin: 2rem 0 1rem; 
-      color: #1a1a1a; 
-    }
-    .dcent-blog-post h3 { 
-      font-size: 1.5rem; 
-      font-weight: 600; 
-      margin: 1.5rem 0 0.75rem; 
-      color: #333; 
-    }
-    .dcent-blog-post p { 
-      line-height: 1.7; 
-      margin-bottom: 1rem; 
-      color: #444; 
-    }
-    .dcent-blog-post strong {
-      font-weight: 700;
-      color: #1a1a1a;
-    }
-    .dcent-blog-post em {
-      font-style: italic;
-      color: #555;
-    }
-    .blog-image { 
-      margin: 2rem 0; 
-      text-align: center; 
-    }
-    .blog-image img { 
-      max-width: 100%; 
-      border-radius: 8px; 
-    }
-    .blog-image figcaption { 
-      font-size: 0.9rem; 
-      color: #666; 
-      margin-top: 0.5rem; 
-    }
-    .fact-check {
-      display: inline-block;
-      background: #fff3cd;
-      color: #856404;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin: 0 4px;
-    }
-    .source-note { 
-      display: inline-block;
-      font-size: 0.85rem; 
-      color: #0066cc; 
-      background: #e7f3ff;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin: 4px 0;
-    }
-  </style>
-  
-  ${html}
-</article>`;
-  };
-
-  const generateEmailHTML = () => {
-    if (!draft) return '';
-    
-    let text = draft
-      .replace(/\[이미지: ([^\]]+)\]/g, '📷 이미지: $1')
-      .replace(/\[팩트체크 필요\]/g, '<span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">📌 팩트체크 필요</span>')
-      .replace(/\[출처 제안: ([^\]]+)\]/g, '<span style="background: #e7f3ff; color: #0066cc; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem;">📚 출처: $1</span>');
-    
-    const titleMatch = text.match(/^#\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1] : '제목';
-    
-    // 볼드 처리
-    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    // 이탤릭 처리
-    text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
-    return `<!-- Shopify Email Template -->
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
-          <tr>
-            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="color: #ffffff; font-size: 28px; margin: 0; font-weight: bold;">${title}</h1>
-            </td>
-          </tr>
+          const data = await response.json();
+          const briefText = data.content.find(c => c.type === 'text')?.text || '';
           
-          <tr>
-            <td style="padding: 40px 30px;">
-              ${text.split('\n\n').map(p => {
-                if (p.startsWith('##')) {
-                  return `<h2 style="color: #333; font-size: 22px; margin: 30px 0 15px; font-weight: 600;">${p.replace(/^##\s+/, '')}</h2>`;
-                } else if (p.startsWith('###')) {
-                  return `<h3 style="color: #555; font-size: 18px; margin: 20px 0 10px; font-weight: 600;">${p.replace(/^###\s+/, '')}</h3>`;
-                } else {
-                  return `<p style="color: #444; line-height: 1.7; margin: 0 0 15px; font-size: 16px;">${p}</p>`;
-                }
-              }).join('')}
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="padding: 0 30px 40px; text-align: center;">
-              <a href="YOUR_LINK_HERE" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; font-size: 16px;">더 알아보기</a>
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
-              <p style="margin: 0; color: #6c757d; font-size: 14px;">© 2024 DCENT. All rights reserved.</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-  };
+          addLog('✅ 브리프 생성 완료!', 'success');
+          setBrief(briefText);
+          setStage('brief');
+        } catch (err) {
+          addLog('❌ 오류 발생: ' + err.message, 'error');
+          alert('브리프 생성 중 오류: ' + err.message);
+        }
+        setLoading(false);
+        setLoadingProgress(0);
+      };
 
-  const generatePlainText = () => {
-    if (!draft) return '';
-    
-    return draft
-      .replace(/\[이미지: ([^\]]+)\]/g, '[이미지] $1')
-      .replace(/\[팩트체크 필요\]/g, '📌 [팩트체크 필요]')
-      .replace(/\[출처 제안: ([^\]]+)\]/g, '📚 [출처 제안: $1]')
-      .replace(/\*\*(.+?)\*\*/g, '$1') // 볼드 마크다운 제거 (텍스트만)
-      .replace(/\*([^*]+)\*/g, '$1') // 이탤릭 마크다운 제거
-      .replace(/^###\s+/gm, '')
-      .replace(/^##\s+/gm, '')
-      .replace(/^#\s+/gm, '');
-  };
+      const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        alert('클립보드에 복사되었습니다!');
+      };
 
-  const getExportContent = () => {
-    switch(exportFormat) {
-      case 'shopify': return generateShopifyHTML();
-      case 'email': return generateEmailHTML();
-      case 'plaintext': return generatePlainText();
-      default: return '';
-    }
-  };
+      const resetAll = () => {
+        setStage('input');
+        setTopic('');
+        setTargetKeyword('');
+        setFeedback('');
+        setBrief(null);
+        setDraft(null);
+        setSeoOutput(null);
+        setRevisionCount({ brief: 0, draft: 0 });
+        setTranslations({});
+        setValidationResult(null);
+      };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
-      <div className="max-w-5xl mx-auto">
-        {/* 헤더 */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <FileText className="w-8 h-8 text-blue-400" />
-                <h1 className="text-3xl font-bold text-white">컨텐츠 AI 에이전트</h1>
-              </div>
-              <p className="text-blue-200">SEO 최적화 · Featured Snippet 타겟 · 검색 의도 기반 구조</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 로딩 프로그레스 바 */}
-        {(loading || validating) && (
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-              <p className="text-white font-semibold">{loadingMessage}</p>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden mb-2">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-300 ease-out"
-                style={{ width: `${loadingProgress}%` }}
-              ></div>
-            </div>
-            <p className="text-white/60 text-sm mb-4 text-right">{Math.round(loadingProgress)}%</p>
-
-            {/* 작업 로그 */}
-            <div className="bg-black/30 rounded-lg p-4 max-h-48 overflow-y-auto">
-              <p className="text-white/80 text-xs font-semibold mb-2">📋 작업 내역</p>
-              <div className="space-y-1">
-                {activityLog.map((log, index) => (
-                  <div key={index} className="flex items-start gap-2 text-xs">
-                    <span className="text-white/40 font-mono">{log.timestamp}</span>
-                    <span className={`flex-1 ${
-                      log.type === 'success' ? 'text-green-400' :
-                      log.type === 'error' ? 'text-red-400' :
-                      log.type === 'start' ? 'text-blue-400' :
-                      log.type === 'process' ? 'text-yellow-300' :
-                      'text-white/60'
-                    }`}>
-                      {log.message}
-                    </span>
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
+          <div className="max-w-5xl mx-auto">
+            {/* 헤더 */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <LucideIcon name="FileText" className="w-8 h-8 text-blue-400" />
+                    <h1 className="text-3xl font-bold text-white">컨텐츠 AI 에이전트</h1>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 진행 상태 */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 mb-6 border border-white/20">
-          <div className="flex items-center justify-between">
-            <Step active={stage === 'input'} completed={stage !== 'input'} icon={<Lightbulb />} label="주제 입력" />
-            <ChevronRight className="text-white/40" />
-            <Step active={stage === 'brief'} completed={['draft', 'seo', 'complete'].includes(stage)} icon={<FileText />} label="브리프" />
-            <ChevronRight className="text-white/40" />
-            <Step active={stage === 'draft'} completed={['seo', 'complete'].includes(stage)} icon={<FileText />} label="초안" />
-            <ChevronRight className="text-white/40" />
-            <Step active={stage === 'seo'} completed={stage === 'complete'} icon={<TrendingUp />} label="SEO" />
-            <ChevronRight className="text-white/40" />
-            <Step active={stage === 'complete'} icon={<CheckCircle />} label="완료" />
-          </div>
-        </div>
-
-        {/* 입력 단계 */}
-        {stage === 'input' && (
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-4">변수 설정</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-white font-semibold mb-2">Topic (필수) *</label>
-                <input
-                  type="text"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="예: 콜드월렛으로 NFT 안전하게 보관하는 방법"
-                  className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white font-semibold mb-2">
-                  타겟 키워드 <span className="text-white/60 text-sm font-normal">(선택사항)</span>
-                </label>
-                <input
-                  type="text"
-                  value={targetKeyword}
-                  onChange={(e) => setTargetKeyword(e.target.value)}
-                  placeholder="예: 콜드월렛 NFT 보관"
-                  className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50"
-                />
-                <p className="text-white/50 text-xs mt-1">
-                  💡 SEO 최적화를 위한 메인 키워드를 입력하세요. 미입력 시 AI가 자동 제안합니다.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-white font-semibold mb-2">Audience (독자 레벨)</label>
-                  <select value={audience} onChange={(e) => setAudience(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
-                    <option value="초보자 (초급)">초보자 (초급)</option>
-                    <option value="중급자 (중급)">중급자 (중급)</option>
-                    <option value="고급자 (잘 아는 사람)">고급자 (잘 아는 사람)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-white font-semibold mb-2">Goal</label>
-                  <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
-                    <option value="교육">교육</option>
-                    <option value="전환">전환</option>
-                    <option value="리드">리드</option>
-                    <option value="브랜딩">브랜딩</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-white font-semibold mb-2">Tone & Manner</label>
-                  <select value={tone} onChange={(e) => setTone(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
-                    <option value="전문적이면서 친근한">전문적이면서 친근한 (기본)</option>
-                    <option value="매우 친근하고 대화체">매우 친근하고 대화체</option>
-                    <option value="엄격하게 전문적">엄격하게 전문적</option>
-                    <option value="기술적이고 상세한">기술적이고 상세한</option>
-                    <option value="간결하고 실용적">간결하고 실용적</option>
-                    <option value="스토리텔링 중심">스토리텔링 중심</option>
-                    <option value="교육적이고 친절한">교육적이고 친절한</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-white font-semibold mb-2">검색 의도</label>
-                  <select value={searchIntent} onChange={(e) => setSearchIntent(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
-                    <option value="정보 검색 (How to)">정보 검색 (How to)</option>
-                    <option value="비교/검토 (Best, vs)">비교/검토 (Best, vs)</option>
-                    <option value="구매 의도 (Buy, Price)">구매 의도 (Buy, Price)</option>
-                    <option value="문제 해결 (Fix, Error)">문제 해결 (Fix, Error)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-white font-semibold mb-2">Length</label>
-                  <select value={length} onChange={(e) => setLength(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
-                    <option value="800">800자</option>
-                    <option value="1200">1200자</option>
-                    <option value="1500">1500+자</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-white font-semibold mb-2">CTAs</label>
-                  <select value={ctas} onChange={(e) => setCtas(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
-                    <option value="1">1개</option>
-                    <option value="2">2개</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-white font-semibold mb-2">Locale</label>
-                  <input type="text" value={locale} onChange={(e) => setLocale(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white" />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="images"
-                  checked={includeImages}
-                  onChange={(e) => setIncludeImages(e.target.checked)}
-                  className="w-5 h-5"
-                />
-                <label htmlFor="images" className="text-white font-semibold">이미지 제안 포함</label>
-              </div>
-
-              <button
-                onClick={generateBrief}
-                disabled={loading}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                {loading ? '생성 중...' : <><Send className="w-5 h-5" /> 브리프 생성</>}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 브리프 단계 */}
-        {stage === 'brief' && brief && (
-          <div className="space-y-4">
-            <button
-              onClick={goToPreviousStage}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all disabled:opacity-50"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              이전 단계로 (변수 수정)
-            </button>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white">체크포인트 1: 브리프</h2>
-                <div className="flex items-center gap-3">
-                  {revisionCount.brief > 0 && (
-                    <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
-                      수정 {revisionCount.brief}회
-                    </span>
-                  )}
-                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm">#await_human_ok</span>
-                </div>
-              </div>
-              <div className="bg-black/30 rounded-lg p-4 text-white whitespace-pre-wrap font-mono text-sm overflow-auto max-h-96">
-                {brief}
-              </div>
-              
-              {/* AI 검증 버튼 */}
-              <div className="mt-4">
-                <button
-                  onClick={() => validateWithAI('brief', brief)}
-                  disabled={validating || loading}
-                  className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {validating ? '검증 중...' : <><Search className="w-5 h-5" /> 🤖 AI SEO 전문가 검증</>}
-                </button>
-              </div>
-
-              {/* 검증 결과 표시 */}
-              {validationResult && !validating && (
-                <div className="mt-4 bg-gradient-to-br from-purple-900/40 to-blue-900/40 rounded-xl p-6 border border-purple-400/30">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    📊 AI 전문가 평가 결과
-                  </h3>
-
-                  {/* 종합 점수 */}
-                  <div className="mb-6 text-center">
-                    <div className="text-5xl font-bold text-white mb-2">
-                      {validationResult.overall_score}<span className="text-2xl text-white/60">/100</span>
-                    </div>
-                    <div className={`text-lg font-semibold ${
-                      validationResult.overall_score >= 90 ? 'text-green-400' :
-                      validationResult.overall_score >= 70 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
-                      {validationResult.overall_score >= 90 ? '🌟 탁월함' :
-                       validationResult.overall_score >= 70 ? '✅ 우수' :
-                       '⚠️ 개선 필요'}
-                    </div>
-                  </div>
-
-                  {/* 세부 점수 */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    {Object.entries(validationResult.scores).map(([key, score]) => {
-                      const labels = {
-                        keyword_strategy: '키워드 전략',
-                        featured_snippet: 'Featured Snippet',
-                        structure: '구조',
-                        completeness: '완성도',
-                        keyword_optimization: '키워드 최적화',
-                        readability: '가독성',
-                        metadata: '메타데이터',
-                        link_strategy: '링크 전략',
-                        technical_seo: '기술 SEO'
-                      };
-                      return (
-                        <div key={key} className="bg-white/10 rounded-lg p-3">
-                          <div className="text-white/70 text-sm mb-1">{labels[key]}</div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-white/20 rounded-full h-2">
-                              <div 
-                                className={`h-full rounded-full ${
-                                  score >= 90 ? 'bg-green-400' :
-                                  score >= 70 ? 'bg-yellow-400' :
-                                  'bg-red-400'
-                                }`}
-                                style={{ width: `${score}%` }}
-                              ></div>
-                            </div>
-                            <div className="text-white font-bold text-sm">{score}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* 강점 */}
-                  {validationResult.strengths && validationResult.strengths.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-green-400 font-semibold mb-2">✅ 강점</h4>
-                      <ul className="space-y-1">
-                        {validationResult.strengths.map((strength, idx) => (
-                          <li key={idx} className="text-white/80 text-sm">• {strength}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* 개선 사항 */}
-                  {validationResult.issues && validationResult.issues.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-yellow-400 font-semibold mb-2">⚠️ 개선 사항</h4>
-                      <div className="space-y-2">
-                        {validationResult.issues.map((issue, idx) => (
-                          <div key={idx} className={`p-3 rounded-lg ${
-                            issue.severity === 'error' ? 'bg-red-500/20 border border-red-400/30' :
-                            'bg-yellow-500/20 border border-yellow-400/30'
-                          }`}>
-                            <div className="text-white font-semibold text-sm mb-1">
-                              {issue.severity === 'error' ? '❌' : '⚠️'} {issue.item}
-                              {issue.location && <span className="text-white/60"> ({issue.location})</span>}
-                            </div>
-                            <div className="text-white/70 text-sm">→ {issue.suggestion}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 자동 피드백 적용 버튼 */}
-                  {validationResult.auto_feedback && (
-                    <button
-                      onClick={applyAutoFeedback}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      자동으로 피드백 입력하기
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-3">✏️ 편집자 피드백</h3>
-              <p className="text-white/60 text-sm mb-3">
-                수정이 필요한 부분을 구체적으로 입력하세요. 피드백 제출 시 자동으로 브리프가 재생성됩니다.
-              </p>
-              <textarea
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="예: Featured Snippet 타겟을 더 구체화해주세요"
-                className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 h-32 mb-4"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={reviseBrief}
-                  disabled={loading || !feedback.trim()}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {loading ? '수정 중...' : <><AlertCircle className="w-5 h-5" /> 피드백 제출 & 재생성</>}
-                </button>
-                <button
-                  onClick={generateDraft}
-                  disabled={loading}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
-                >
-                  {loading ? '생성 중...' : <><CheckCircle className="w-5 h-5" /> 승인 & 초안 생성</>}
-                </button>
-              </div>
-              <button onClick={resetAll} className="w-full mt-3 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-all">처음으로</button>
-            </div>
-          </div>
-        )}
-
-        {/* 초안 단계 */}
-        {stage === 'draft' && draft && (
-          <div className="space-y-4">
-            <button
-              onClick={goToPreviousStage}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all disabled:opacity-50"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              이전 단계로 (브리프 수정)
-            </button>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white">체크포인트 3: 초안</h2>
-                <div className="flex items-center gap-3">
-                  {revisionCount.draft > 0 && (
-                    <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
-                      수정 {revisionCount.draft}회
-                    </span>
-                  )}
-                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm">#await_human_ok</span>
-                </div>
-              </div>
-              <div className="bg-black/30 rounded-lg p-4 text-white whitespace-pre-wrap text-sm overflow-auto max-h-96">
-                {draft}
-              </div>
-
-              {/* AI 검증 버튼 */}
-              <div className="mt-4">
-                <button
-                  onClick={() => validateWithAI('draft', draft)}
-                  disabled={validating || loading}
-                  className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {validating ? '검증 중...' : <><Search className="w-5 h-5" /> 🤖 AI SEO 전문가 검증</>}
-                </button>
-              </div>
-
-              {/* 검증 결과 표시 */}
-              {validationResult && !validating && (
-                <div className="mt-4 bg-gradient-to-br from-purple-900/40 to-blue-900/40 rounded-xl p-6 border border-purple-400/30">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    📊 AI 전문가 평가 결과
-                  </h3>
-
-                  {/* 종합 점수 */}
-                  <div className="mb-6 text-center">
-                    <div className="text-5xl font-bold text-white mb-2">
-                      {validationResult.overall_score}<span className="text-2xl text-white/60">/100</span>
-                    </div>
-                    <div className={`text-lg font-semibold ${
-                      validationResult.overall_score >= 90 ? 'text-green-400' :
-                      validationResult.overall_score >= 70 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
-                      {validationResult.overall_score >= 90 ? '🌟 탁월함' :
-                       validationResult.overall_score >= 70 ? '✅ 우수' :
-                       '⚠️ 개선 필요'}
-                    </div>
-                  </div>
-
-                  {/* 주요 지표 */}
-                  {validationResult.keyword_density && (
-                    <div className="grid grid-cols-3 gap-3 mb-4">
-                      <div className="bg-white/10 rounded-lg p-3 text-center">
-                        <div className="text-white/70 text-xs mb-1">키워드 밀도</div>
-                        <div className="text-white font-bold">{validationResult.keyword_density}</div>
-                      </div>
-                      {validationResult.first_paragraph_words && (
-                        <div className="bg-white/10 rounded-lg p-3 text-center">
-                          <div className="text-white/70 text-xs mb-1">첫 문단</div>
-                          <div className="text-white font-bold">{validationResult.first_paragraph_words}단어</div>
-                        </div>
-                      )}
-                      {validationResult.avg_sentence_length && (
-                        <div className="bg-white/10 rounded-lg p-3 text-center">
-                          <div className="text-white/70 text-xs mb-1">평균 문장</div>
-                          <div className="text-white font-bold">{validationResult.avg_sentence_length}단어</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 세부 점수 */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    {Object.entries(validationResult.scores).map(([key, score]) => {
-                      const labels = {
-                        keyword_strategy: '키워드 전략',
-                        featured_snippet: 'Featured Snippet',
-                        structure: '구조',
-                        completeness: '완성도',
-                        keyword_optimization: '키워드 최적화',
-                        readability: '가독성',
-                        metadata: '메타데이터',
-                        link_strategy: '링크 전략',
-                        technical_seo: '기술 SEO'
-                      };
-                      return (
-                        <div key={key} className="bg-white/10 rounded-lg p-3">
-                          <div className="text-white/70 text-sm mb-1">{labels[key]}</div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-white/20 rounded-full h-2">
-                              <div 
-                                className={`h-full rounded-full ${
-                                  score >= 90 ? 'bg-green-400' :
-                                  score >= 70 ? 'bg-yellow-400' :
-                                  'bg-red-400'
-                                }`}
-                                style={{ width: `${score}%` }}
-                              ></div>
-                            </div>
-                            <div className="text-white font-bold text-sm">{score}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* 강점 */}
-                  {validationResult.strengths && validationResult.strengths.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-green-400 font-semibold mb-2">✅ 강점</h4>
-                      <ul className="space-y-1">
-                        {validationResult.strengths.map((strength, idx) => (
-                          <li key={idx} className="text-white/80 text-sm">• {strength}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* 개선 사항 */}
-                  {validationResult.issues && validationResult.issues.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-yellow-400 font-semibold mb-2">⚠️ 개선 사항</h4>
-                      <div className="space-y-2">
-                        {validationResult.issues.map((issue, idx) => (
-                          <div key={idx} className={`p-3 rounded-lg ${
-                            issue.severity === 'error' ? 'bg-red-500/20 border border-red-400/30' :
-                            'bg-yellow-500/20 border border-yellow-400/30'
-                          }`}>
-                            <div className="text-white font-semibold text-sm mb-1">
-                              {issue.severity === 'error' ? '❌' : '⚠️'} {issue.item}
-                              {issue.location && <span className="text-white/60"> ({issue.location})</span>}
-                            </div>
-                            <div className="text-white/70 text-sm">→ {issue.suggestion}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 자동 피드백 적용 버튼 */}
-                  {validationResult.auto_feedback && (
-                    <button
-                      onClick={applyAutoFeedback}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      자동으로 피드백 입력하기
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-3">✏️ 보이스·팩트 체크 피드백</h3>
-              <p className="text-white/60 text-sm mb-3">
-                톤앤매너, 사실 확인, 문장 수정 등을 구체적으로 입력하세요. 피드백 제출 시 자동으로 초안이 재생성됩니다.
-              </p>
-              <textarea
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="예: 키워드 밀도가 너무 높습니다. 더 자연스럽게 수정해주세요"
-                className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 h-32 mb-4"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={reviseDraft}
-                  disabled={loading || !feedback.trim()}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {loading ? '수정 중...' : <><AlertCircle className="w-5 h-5" /> 피드백 제출 & 재생성</>}
-                </button>
-                <button
-                  onClick={generateSEO}
-                  disabled={loading}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
-                >
-                  {loading ? '생성 중...' : <><CheckCircle className="w-5 h-5" /> 승인 & SEO 최적화</>}
-                </button>
-              </div>
-              <button onClick={resetAll} className="w-full mt-3 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-all">처음으로</button>
-            </div>
-          </div>
-        )}
-
-        {/* SEO 단계 */}
-        {stage === 'seo' && seoOutput && (
-          <div className="space-y-4">
-            <button
-              onClick={goToPreviousStage}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all disabled:opacity-50"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              이전 단계로 (초안 수정)
-            </button>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white">체크포인트 5: SEO·퍼포먼스 최적화</h2>
-                <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm">#await_human_ok</span>
-              </div>
-              <div className="bg-black/30 rounded-lg p-4 text-white whitespace-pre-wrap text-sm overflow-auto max-h-96">
-                {seoOutput}
-              </div>
-
-              {/* AI 검증 버튼 */}
-              <div className="mt-4">
-                <button
-                  onClick={() => validateWithAI('seo', seoOutput)}
-                  disabled={validating || loading}
-                  className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {validating ? '검증 중...' : <><Search className="w-5 h-5" /> 🤖 AI SEO 전문가 검증</>}
-                </button>
-              </div>
-
-              {/* 검증 결과 표시 */}
-              {validationResult && !validating && (
-                <div className="mt-4 bg-gradient-to-br from-purple-900/40 to-blue-900/40 rounded-xl p-6 border border-purple-400/30">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    📊 AI 전문가 평가 결과
-                  </h3>
-
-                  {/* 종합 점수 */}
-                  <div className="mb-6 text-center">
-                    <div className="text-5xl font-bold text-white mb-2">
-                      {validationResult.overall_score}<span className="text-2xl text-white/60">/100</span>
-                    </div>
-                    <div className={`text-lg font-semibold ${
-                      validationResult.overall_score >= 90 ? 'text-green-400' :
-                      validationResult.overall_score >= 70 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
-                      {validationResult.overall_score >= 90 ? '🌟 탁월함' :
-                       validationResult.overall_score >= 70 ? '✅ 우수' :
-                       '⚠️ 개선 필요'}
-                    </div>
-                  </div>
-
-                  {/* 세부 점수 */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    {Object.entries(validationResult.scores).map(([key, score]) => {
-                      const labels = {
-                        keyword_strategy: '키워드 전략',
-                        featured_snippet: 'Featured Snippet',
-                        structure: '구조',
-                        completeness: '완성도',
-                        keyword_optimization: '키워드 최적화',
-                        readability: '가독성',
-                        metadata: '메타데이터',
-                        link_strategy: '링크 전략',
-                        technical_seo: '기술 SEO'
-                      };
-                      return (
-                        <div key={key} className="bg-white/10 rounded-lg p-3">
-                          <div className="text-white/70 text-sm mb-1">{labels[key]}</div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-white/20 rounded-full h-2">
-                              <div 
-                                className={`h-full rounded-full ${
-                                  score >= 90 ? 'bg-green-400' :
-                                  score >= 70 ? 'bg-yellow-400' :
-                                  'bg-red-400'
-                                }`}
-                                style={{ width: `${score}%` }}
-                              ></div>
-                            </div>
-                            <div className="text-white font-bold text-sm">{score}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* 강점 */}
-                  {validationResult.strengths && validationResult.strengths.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-green-400 font-semibold mb-2">✅ 강점</h4>
-                      <ul className="space-y-1">
-                        {validationResult.strengths.map((strength, idx) => (
-                          <li key={idx} className="text-white/80 text-sm">• {strength}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* 개선 사항 */}
-                  {validationResult.issues && validationResult.issues.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-yellow-400 font-semibold mb-2">⚠️ 개선 사항</h4>
-                      <div className="space-y-2">
-                        {validationResult.issues.map((issue, idx) => (
-                          <div key={idx} className={`p-3 rounded-lg ${
-                            issue.severity === 'error' ? 'bg-red-500/20 border border-red-400/30' :
-                            'bg-yellow-500/20 border border-yellow-400/30'
-                          }`}>
-                            <div className="text-white font-semibold text-sm mb-1">
-                              {issue.severity === 'error' ? '❌' : '⚠️'} {issue.item}
-                            </div>
-                            <div className="text-white/70 text-sm">→ {issue.suggestion}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 자동 피드백 적용 버튼 */}
-                  {validationResult.auto_feedback && (
-                    <button
-                      onClick={applyAutoFeedback}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      자동으로 피드백 입력하기
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 내보내기 섹션 */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-4">📤 콘텐츠 내보내기</h3>
-              
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <button
-                  onClick={() => setExportFormat('shopify')}
-                  className={`p-4 rounded-lg flex flex-col items-center gap-2 transition-all ${
-                    exportFormat === 'shopify' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-white/10 text-white/70 hover:bg-white/20'
-                  }`}
-                >
-                  <Code className="w-6 h-6" />
-                  <span className="font-semibold">Shopify HTML</span>
-                  <span className="text-xs opacity-80">블로그 게시용</span>
-                </button>
-                
-                <button
-                  onClick={() => setExportFormat('email')}
-                  className={`p-4 rounded-lg flex flex-col items-center gap-2 transition-all ${
-                    exportFormat === 'email' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-white/10 text-white/70 hover:bg-white/20'
-                  }`}
-                >
-                  <Mail className="w-6 h-6" />
-                  <span className="font-semibold">Email Template</span>
-                  <span className="text-xs opacity-80">Shopify Email용</span>
-                </button>
-                
-                <button
-                  onClick={() => setExportFormat('plaintext')}
-                  className={`p-4 rounded-lg flex flex-col items-center gap-2 transition-all ${
-                    exportFormat === 'plaintext' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-white/10 text-white/70 hover:bg-white/20'
-                  }`}
-                >
-                  <FileText className="w-6 h-6" />
-                  <span className="font-semibold">Plain Text</span>
-                  <span className="text-xs opacity-80">백업/참고용</span>
-                </button>
-              </div>
-
-              <div className="bg-black/30 rounded-lg p-4 mb-4 max-h-96 overflow-auto">
-                <pre className="text-white text-xs font-mono whitespace-pre-wrap">{getExportContent()}</pre>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => copyToClipboard(getExportContent())}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"
-                >
-                  <Copy className="w-5 h-5" /> 클립보드에 복사
-                </button>
-                <button
-                  onClick={() => setStage('complete')}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"
-                >
-                  <CheckCircle className="w-5 h-5" /> 릴리스 승인
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-3">💡 사용 가이드</h3>
-              <div className="space-y-3 text-white/80 text-sm">
-                <div>
-                  <strong className="text-white">Shopify 블로그:</strong> Shopify Admin → 온라인 스토어 → 블로그 글 → HTML 모드로 전환하여 붙여넣기
-                </div>
-                <div>
-                  <strong className="text-white">Shopify Email:</strong> 마케팅 → 캠페인 만들기 → HTML 편집기에 붙여넣기
-                </div>
-                <div>
-                  <strong className="text-white">이미지:</strong> PLACEHOLDER.jpg를 Shopify Files에 업로드한 이미지 URL로 교체하세요
-                </div>
-                <div>
-                  <strong className="text-white">SEO 메타데이터:</strong> Shopify 블로그 편집 화면에서 "검색 엔진 최적화" 섹션에 별도 입력
-                </div>
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mt-3">
-                  <strong className="text-yellow-300">📌 팩트체크 & 출처 확인:</strong>
-                  <p className="text-yellow-200/80 mt-1">
-                    노란색 박스(📌 팩트체크 필요)와 파란색 박스(📚 출처 제안)가 포함되어 있습니다. 
-                    게시 전에 반드시 해당 내용을 검증하고, 실제 출처 링크로 교체하세요.
-                  </p>
+                  <p className="text-blue-200">SEO 최적화 · Featured Snippet 타겟 · 검색 의도 기반 구조</p>
                 </div>
               </div>
             </div>
 
-            <button onClick={resetAll} className="w-full px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg">처음으로</button>
-          </div>
-        )}
+            {/* 로딩 프로그레스 바 */}
+            {(loading || validating) && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                  <p className="text-white font-semibold">{loadingMessage}</p>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden mb-2">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-300 ease-out"
+                    style={{ width: `${loadingProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-white/60 text-sm mb-4 text-right">{Math.round(loadingProgress)}%</p>
 
-        {/* 완료 단계 */}
-        {stage === 'complete' && (
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20 text-center">
-              <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold text-white mb-2">콘텐츠 제작 완료!</h2>
-              <p className="text-blue-200 mb-6">모든 체크포인트를 통과했습니다.</p>
-            </div>
-
-            {/* 다국어 번역 섹션 */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <div className="flex items-center gap-3 mb-4">
-                <Globe className="w-6 h-6 text-blue-400" />
-                <h3 className="text-2xl font-bold text-white">다국어 번역</h3>
-              </div>
-              <p className="text-white/60 text-sm mb-6">
-                완성된 콘텐츠를 다른 언어로 번역하여 글로벌 독자에게 전달하세요. 문맥을 고려한 자연스러운 의역으로 번역됩니다.
-              </p>
-
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <button
-                  onClick={() => translateContent('ko')}
-                  disabled={loading || translatingLang === 'ko'}
-                  className={`p-6 rounded-xl border-2 transition-all ${
-                    translations.ko 
-                      ? 'bg-green-500/20 border-green-400' 
-                      : 'bg-white/5 border-white/20 hover:border-blue-400 hover:bg-white/10'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <div className="text-4xl mb-2">🇰🇷</div>
-                  <div className="text-white font-semibold">한국어</div>
-                  {translations.ko && <div className="text-green-400 text-xs mt-1">✓ 번역 완료</div>}
-                  {translatingLang === 'ko' && <div className="text-yellow-400 text-xs mt-1 animate-pulse">번역 중...</div>}
-                </button>
-
-                <button
-                  onClick={() => translateContent('ja')}
-                  disabled={loading || translatingLang === 'ja'}
-                  className={`p-6 rounded-xl border-2 transition-all ${
-                    translations.ja 
-                      ? 'bg-green-500/20 border-green-400' 
-                      : 'bg-white/5 border-white/20 hover:border-blue-400 hover:bg-white/10'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <div className="text-4xl mb-2">🇯🇵</div>
-                  <div className="text-white font-semibold">日本語</div>
-                  {translations.ja && <div className="text-green-400 text-xs mt-1">✓ 翻訳完了</div>}
-                  {translatingLang === 'ja' && <div className="text-yellow-400 text-xs mt-1 animate-pulse">翻訳中...</div>}
-                </button>
-
-                <button
-                  onClick={() => translateContent('en')}
-                  disabled={loading || translatingLang === 'en'}
-                  className={`p-6 rounded-xl border-2 transition-all ${
-                    translations.en 
-                      ? 'bg-green-500/20 border-green-400' 
-                      : 'bg-white/5 border-white/20 hover:border-blue-400 hover:bg-white/10'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <div className="text-4xl mb-2">🇺🇸</div>
-                  <div className="text-white font-semibold">English</div>
-                  {translations.en && <div className="text-green-400 text-xs mt-1">✓ Translated</div>}
-                  {translatingLang === 'en' && <div className="text-yellow-400 text-xs mt-1 animate-pulse">Translating...</div>}
-                </button>
-              </div>
-
-              {/* 번역된 콘텐츠 표시 */}
-              {Object.keys(translations).length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-white font-semibold">번역된 콘텐츠</h4>
-                  
-                  {Object.entries(translations).map(([lang, text]) => (
-                    <div key={lang} className="bg-black/30 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-white font-semibold flex items-center gap-2">
-                          {lang === 'ko' && '🇰🇷 한국어'}
-                          {lang === 'ja' && '🇯🇵 日本語'}
-                          {lang === 'en' && '🇺🇸 English'}
+                {/* 작업 로그 */}
+                <div className="bg-black/30 rounded-lg p-4 max-h-48 overflow-y-auto">
+                  <p className="text-white/80 text-xs font-semibold mb-2">📋 작업 내역</p>
+                  <div className="space-y-1">
+                    {activityLog.map((log, index) => (
+                      <div key={index} className="flex items-start gap-2 text-xs">
+                        <span className="text-white/40 font-mono">{log.timestamp}</span>
+                        <span className={`flex-1 ${
+                          log.type === 'success' ? 'text-green-400' :
+                          log.type === 'error' ? 'text-red-400' :
+                          log.type === 'start' ? 'text-blue-400' :
+                          log.type === 'process' ? 'text-yellow-300' :
+                          'text-white/60'
+                        }`}>
+                          {log.message}
                         </span>
-                        <button
-                          onClick={() => copyToClipboard(text)}
-                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded flex items-center gap-1"
-                        >
-                          <Copy className="w-3 h-3" /> 복사
-                        </button>
                       </div>
-                      <div className="text-white/80 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto border-t border-white/10 pt-3">
-                        {text.substring(0, 500)}...
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <button
-              onClick={resetAll}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg"
-            >
-              새 콘텐츠 제작하기
-            </button>
+            {/* 입력 단계 */}
+            {stage === 'input' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <h2 className="text-2xl font-bold text-white mb-4">변수 설정</h2>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-white font-semibold mb-2">Topic (필수) *</label>
+                    <input
+                      type="text"
+                      value={topic}
+                      onChange={(e) => setTopic(e.target.value)}
+                      placeholder="예: 콜드월렛으로 NFT 안전하게 보관하는 방법"
+                      className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white font-semibold mb-2">
+                      타겟 키워드 <span className="text-white/60 text-sm font-normal">(선택사항)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={targetKeyword}
+                      onChange={(e) => setTargetKeyword(e.target.value)}
+                      placeholder="예: 콜드월렛 NFT 보관"
+                      className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-white font-semibold mb-2">검색 의도</label>
+                      <select value={searchIntent} onChange={(e) => setSearchIntent(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
+                        <option value="정보 검색 (How to)">정보 검색 (How to)</option>
+                        <option value="비교/검토 (Best, vs)">비교/검토 (Best, vs)</option>
+                        <option value="구매 의도 (Buy, Price)">구매 의도 (Buy, Price)</option>
+                        <option value="문제 해결 (Fix, Error)">문제 해결 (Fix, Error)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-semibold mb-2">Tone & Manner</label>
+                      <select value={tone} onChange={(e) => setTone(e.target.value)} className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
+                        <option value="전문적이면서 친근한">전문적이면서 친근한</option>
+                        <option value="매우 친근하고 대화체">매우 친근하고 대화체</option>
+                        <option value="기술적이고 상세한">기술적이고 상세한</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={generateBrief}
+                    disabled={loading}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {loading ? '생성 중...' : (
+                      <>
+                        <LucideIcon name="Send" />
+                        브리프 생성
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 브리프 단계 */}
+            {stage === 'brief' && brief && (
+              <div className="space-y-4">
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                  <h2 className="text-2xl font-bold text-white mb-4">체크포인트 1: 브리프</h2>
+                  <div className="bg-black/30 rounded-lg p-4 text-white whitespace-pre-wrap font-mono text-sm overflow-auto max-h-96 mb-4">
+                    {brief}
+                  </div>
+                  
+                  <button
+                    onClick={() => validateWithAI('brief', brief)}
+                    disabled={validating || loading}
+                    className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {validating ? '검증 중...' : (
+                      <>
+                        <LucideIcon name="Search" />
+                        🤖 AI SEO 전문가 검증
+                      </>
+                    )}
+                  </button>
+
+                  {/* 검증 결과 */}
+                  {validationResult && !validating && (
+                    <div className="mt-4 bg-gradient-to-br from-purple-900/40 to-blue-900/40 rounded-xl p-6 border border-purple-400/30">
+                      <div className="text-center mb-4">
+                        <div className="text-5xl font-bold text-white mb-2">
+                          {validationResult.overall_score}<span className="text-2xl text-white/60">/100</span>
+                        </div>
+                        <div className={`text-lg font-semibold ${
+                          validationResult.overall_score >= 90 ? 'text-green-400' :
+                          validationResult.overall_score >= 70 ? 'text-yellow-400' :
+                          'text-red-400'
+                        }`}>
+                          {validationResult.overall_score >= 90 ? '🌟 탁월함' :
+                           validationResult.overall_score >= 70 ? '✅ 우수' :
+                           '⚠️ 개선 필요'}
+                        </div>
+                      </div>
+
+                      {validationResult.auto_feedback && (
+                        <button
+                          onClick={applyAutoFeedback}
+                          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                        >
+                          자동으로 피드백 입력하기
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <button onClick={resetAll} className="w-full px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-all">
+                  처음으로
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
-  );
-};
+        </div>
+      );
+    };
 
-const Step = ({ active, completed, icon, label }) => (
-  <div className="flex flex-col items-center gap-2">
-    <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${
-      completed ? 'bg-green-500 border-green-400' :
-      active ? 'bg-blue-500 border-blue-400' :
-      'bg-white/10 border-white/30'
-    }`}>
-      {React.cloneElement(icon, { className: 'w-6 h-6 text-white' })}
-    </div>
-    <span className={`text-sm font-semibold ${active || completed ? 'text-white' : 'text-white/50'}`}>
-      {label}
-    </span>
-  </div>
-);
-
-export default DCENTBlogAgent;
-    
     // 렌더링
-    ReactDOM.render(<DCENTBlogAgent />, document.getElementById('root'));
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<DCENTBlogAgent />);
   </script>
 </body>
 </html>
